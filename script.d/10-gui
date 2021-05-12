@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+
+# package
+apt autoremove -y && apt autoclean && apt update -y
+apt install -f -y
+apt install \
+  xorg openbox obconf obmenu \
+  dbus-x11 ntfs-3g exfat-utils gnome-themes-standard gtk2-engines gtk3-engines-breeze breeze-gtk-theme breeze-cursor-theme breeze-icon-theme fonts-dejavu fonts-firacode fonts-liberation2 fonts-ubuntu adwaita-qt qt5-style-plugins libatk-adaptor apt-xapian-index usbmuxd udisks2 eject policykit-1 \
+  gnome-settings-daemon gnome-backgrounds hsetroot nitrogen compton compton-conf zenity lxinput lxpolkit lxtask lxappearance upower arandr scrot grun galculator gparted synaptic terminator gtkhash thunar thunar-data thunar-volman thunar-gtkhash thunar-archive-plugin mousepad \
+  network-manager network-manager-gnome bluetooth bluez bluez-tools blueman nfs-common \
+  pavucontrol pulseaudio pulseaudio-utils pnmixer \
+  tint2 diodon dunst libnotify-bin plank conky conky-all xdotool xinput xbindkeys xpad idesk \
+  xscreensaver xscreensaver-data xscreensaver-gl xscreensaver-gl-extra \
+  light-locker lightdm-gtk-greeter lightdm-gtk-greeter-settings \
+  ristretto atril unar xarchiver firefox-esr \
+  -y
+apt install xbacklight -y
+apt install xkill -y
+dpkg --configure -a
+
+# grub
+sed -i -r "s/(GRUB_CMDLINE_LINUX_DEFAULT=)\"[^\"]*\"/\1\"splash quiet\"/" /etc/default/grub
+update-grub
+
+
+
+
+
+# exo-utils
+#apt install xorg xserver-xorg-input-synaptics -y
+# diodon | clipit
+
+# settings
+#apt install gtk2-engines gtk2-engines-xfce gtk3-engines-xfce breeze-gtk-theme gtk3-engines-breeze libatk-adaptor -y
+#apt install libexo-1-0 libexo-2-0 thunar thunar-data thunar-volman thunar-gtkhash thunar-archive-plugin -y
+
+exit 0
+
+# vim:set ai et sts=2 sw=2 tw=0:

@@ -1,0 +1,10 @@
+#!/bin/sh 
+
+apt update -y
+apt install -f -y
+apt install firmware-linux-free firmware-linux-nonfree -y
+apt install vim -y
+
+exit 0
+
+# vim:set ai et sts=2 sw=2 tw=0:

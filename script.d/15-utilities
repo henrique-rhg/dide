@@ -1,0 +1,12 @@
+#!/bin/sh
+
+apt install \
+  pidgin \
+  dia \
+  gimp inkscape \
+  libreoffice libreoffice-gtk3 \
+  -y
+
+exit 0
+
+# vim:set ai et sts=2 sw=2 tw=0:

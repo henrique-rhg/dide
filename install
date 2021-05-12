@@ -1,0 +1,147 @@
+#!/bin/sh
+# 
+# 
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DIRSCRIPT=`cd $(dirname $0); pwd`
+NAME=`basename $DIRSCRIPT`
+DESC="$NAME install"
+USERNAME=`id | sed "s/^uid=[0-9]*(//; s/).*//"`
+PIDFILE=/var/tmp/"$NAME".pid
+DIRTEMP=/var/tmp/"$NAME"_$$
+
+
+if [ "$USERNAME" != "root" ]; then
+  echo "Run this script as root" >&2
+  exit 1
+fi
+
+if [ -s $PIDFILE ]; then
+  PID=`cat $PIDFILE`
+
+  if [ `ps -p $PID 2> /dev/null >&2` ]; then
+    echo "$DESC: Another running instance, $PID instance" >&2
+    exit 3
+  fi
+
+  rm -f $PIDFILE
+fi
+
+echo $$ > $PIDFILE
+rm -R -f $DIRTEMP && mkdir $DIRTEMP
+
+fn_clear()
+{
+  rm -R -f $DIRTEMP
+  rm -f $PIDFILE
+}
+
+fn_trap() 
+{
+  fn_clear
+  echo "$DESC stopped"
+  exit 2
+}
+
+#  1) SIGHUP/HANGUP
+#  2) SIGINT/INTERRUPT
+# 15) SIGTERM/TERMINATE
+trap fn_trap 1 2 15
+
+
+#### main ####
+
+(
+
+s_extract()
+{
+  _FILE="$1"
+  _PATH="$DIRTEMP"
+
+  if [ ! -f $_FILE ]; then
+    exit 1
+  fi
+
+  if [ ! -d $_PATH ]; then
+    mkdir $_PATH
+  fi
+
+  tar -xzf $_FILE -C $_PATH
+
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  echo "$_PATH"
+}
+
+if [ ! -d $DIRSCRIPT/vendor ]; then
+  echo "The execution directory is not valid!" >&2
+  exit 1
+fi
+
+for DEPENDENCIE in $(cat $DIRSCRIPT/dependencies); do
+  if [ ! `which $DEPENDENCIE` ]; then
+    echo "The '$DEPENDENCIE' package cannot be found" >&2
+    exit 1
+  fi
+done
+
+echo "Starting program, `date`"
+
+for XNAME in $(ls $DIRSCRIPT/script.d/ | sort); do
+  XSCRIPT="$DIRSCRIPT/script.d/$XNAME"
+
+  if [ ! -x $XSCRIPT ]; then
+    chmod +x $XSCRIPT
+  fi
+
+  echo "\033[01;34m>\033[00m \033[33m$XNAME\033[00m"
+
+  $XSCRIPT
+
+  if [ $? -ne 0 ]; then
+    echo "\n  [\033[33m$XNAME\033[00m:\033[31mERROR\033[00m]\n" >&2
+    exit 1
+  else
+    echo "\n  [\033[33m$XNAME\033[00m:\033[32mOK\033[00m]\n"
+  fi
+done
+
+for PACKAGE in $(cat $DIRSCRIPT/packages); do
+  PACKAGE=$DIRSCRIPT/vendor/$PACKAGE
+
+  if [ -f $PACKAGE ]; then
+    XPACKAGE=$(s_extract $PACKAGE)
+
+    if [ $? -ne 0 ]; then
+      echo "\n  [\033[33m$PACKAGE\033[00m:\033[31mERROR\033[00m]\n" >&2
+      exit 1
+    fi
+
+    XPACKAGE=$XPACKAGE/$(basename $PACKAGE | sed 's/.tar.gz//')/install
+
+    if [ ! -x $FILE ]; then
+      chmod +x $XPACKAGE
+    fi
+
+    $XPACKAGE
+
+    if [ $? -ne 0 ]; then
+      echo "\n  [\033[33m$PACKAGE\033[00m:\033[31mERROR\033[00m]\n" >&2
+      exit 1
+    else
+      echo "\n  [\033[33m$PACKAGE\033[00m:\033[32mOK\033[00m]\n"
+    fi
+  fi
+done
+
+echo "Ending program, `date`"
+
+) 2>&1
+
+fn_clear
+
+exit 0
+
+# vim:set ai et sts=2 sw=2 tw=0:
