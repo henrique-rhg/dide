@@ -1,9 +1,12 @@
 #!/bin/sh 
 
-apt update -y
+apt autoremove -y && apt autoclean && apt update -y
 apt install -f -y
-apt install firmware-linux-free firmware-linux-nonfree -y
-apt install vim -y
+apt install \
+  firmware-linux-free \
+  firmware-linux-nonfree \
+  vim \
+  -y
 
 exit 0
 
